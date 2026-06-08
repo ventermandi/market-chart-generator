@@ -29,7 +29,7 @@ if st.button("Generate 10 Year Chart"):
     ax.spines["left"].set_color("#9aa0a6")
     ax.spines["bottom"].set_color("#9aa0a6")
     ax.grid(False)
-    ax.xaxis.set_major_locator(mdates.YearLocator())
+    ax.xaxis.set_major_locator(mdates.MonthLocator(bymonth=None, interval=12))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %y"))
     ax.yaxis.set_major_formatter(FuncFormatter(lambda x, pos: f"{x:,.0f}"))
     ax.set_ylim(bottom=0)
