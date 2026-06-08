@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.ticker import FuncFormatter
+from datetime import date
 
 DATA_SOURCES = {
     "Nasdaq 100": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTS3I741z_KTjaF5DsDIZcx302WX75asa4G5jZSnNRNO3WF_KYjmZbAphGL91unIJCnzry3hxa1BQoG/pub?gid=1612255616&single=true&output=csv",
@@ -39,9 +40,11 @@ if st.button("Generate 10 Year Chart"):
     # Tick styling
     ax.tick_params(axis="both", which="both", length=0, labelsize=10, labelcolor="#1f2a44")
 
-    # X axis — yearly ticks anchored to data start month
-    ax.xaxis.set_major_locator(mdates.MonthLocator(bymonth=None, interval=12))
+    # X axis — yearly ticks anchored to data start month, ending at today
+    start_month = df["Date"].dt.month.iloc[0]
+    ax.xaxis.set_major_locator(mdates.MonthLocator(bymonth=start_month))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %y"))
+    ax.set_xlim(right=pd.Timestamp(date.today()))
 
     # Y axis — formatted with commas, ceiling rounded up to next 1000
     ax.yaxis.set_major_formatter(FuncFormatter(lambda x, pos: f"{x:,.0f}"))
