@@ -5,21 +5,29 @@ import matplotlib.dates as mdates
 from matplotlib.ticker import FuncFormatter
 from datetime import date
 
-DATA_SOURCES = {
-    "Nasdaq 100": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTS3I741z_KTjaF5DsDIZcx302WX75asa4G5jZSnNRNO3WF_KYjmZbAphGL91unIJCnzry3hxa1BQoG/pub?gid=1612255616&single=true&output=csv",
-    "S&P 500": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTS3I741z_KTjaF5DsDIZcx302WX75asa4G5jZSnNRNO3WF_KYjmZbAphGL91unIJCnzry3hxa1BQoG/pub?gid=1167979138&single=true&output=csv",
-    "Euro Stoxx 50": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTS3I741z_KTjaF5DsDIZcx302WX75asa4G5jZSnNRNO3WF_KYjmZbAphGL91unIJCnzry3hxa1BQoG/pub?gid=90279551&single=true&output=csv",
-    "FTSE 100": "https://docs.google.com/spreadsheets/d/e/2PACX-1vTS3I741z_KTjaF5DsDIZcx302WX75asa4G5jZSnNRNO3WF_KYjmZbAphGL91unIJCnzry3hxa1BQoG/pub?gid=515049222&single=true&output=csv",
+SHEET_MAP = {
+    "Nasdaq 100": "Nasdaq100",
+    "S&P 500": "S&P500",
+    "Euro Stoxx 50": "Eurostoxx50",
+    "FTSE 100": "FTSE100",
 }
+
+FILE_PATH = "Charts_Data.xlsx"
 
 st.set_page_config(page_title="Market Chart Generator", layout="wide")
 st.title("10 Year Market Chart Generator")
 
-selected = st.selectbox("Select underlying", list(DATA_SOURCES.keys()))
+selected = st.selectbox("Select underlying", list(SHEET_MAP.keys()))
 
 if st.button("Generate 10 Year Chart"):
-    df = pd.read_csv(DATA_SOURCES[selected])
-    df["Date"] = pd.to_datetime(df["Date"], dayfirst=True)
+    df = pd.read_excel(FILE_PATH, sheet_name=SHEET_MAP[selected])
+    
+    # Handle Excel serial date numbers
+    if pd.api.types.is_numeric_dtype(df["Date"]):
+        df["Date"] = pd.to_datetime(df["Date"], unit="D", origin="1899-12-30")
+    else:
+        df["Date"] = pd.to_datetime(df["Date"], dayfirst=True)
+    
     df["Close"] = pd.to_numeric(df["Close"], errors="coerce")
     df = df.dropna()
 
@@ -42,7 +50,7 @@ if st.button("Generate 10 Year Chart"):
 
     # X axis — yearly ticks anchored to data start month, ending at today
     start_month = df["Date"].dt.month.iloc[0]
-    ax.xaxis.set_major_locator(mdates.MonthLocator(bymonth=start_month))
+    ax.xaxis.set_major_locator(mdates.MonthLocator(bymonth=[start_month]))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %y"))
     ax.set_xlim(right=pd.Timestamp(date.today()))
 
